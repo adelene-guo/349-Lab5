@@ -144,7 +144,13 @@ int sys_thread_init(uint32_t max_threads, uint32_t stack_size, void *idle_fn,
   // invalid number of threads
   uint32_t words = stack_size < MIN_STACK_WORDS ? MIN_STACK_WORDS : stack_size;
   // ensure minimum stack size
-  words = 1U << mm_log2ceil_size(words);
+  words--;
+  words |= words >> 1;
+  words |= words >> 2;
+  words |= words >> 4;
+  words |= words >> 8;
+  words |= words >> 16;
+  words++;
   mutex_index = 0;
   uint32_t user_region_words = (uint32_t)(__thread_u_stacks_top - __thread_u_stacks_low);
   uint32_t kernel_region_words = (uint32_t)(__thread_k_stacks_top - __thread_k_stacks_low);

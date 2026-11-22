@@ -5,8 +5,6 @@
 
 #include <systick.h>
 #include <lcd_driver.h>
-#include <keypad_driver.h>
-
 
 #include <timer.h>
 #include <nvic.h>
@@ -26,6 +24,7 @@
 #include "string.h"
 #include "arm.h"
 #include "servok.h"
+#include "pwm.h"
 
 /** @brief USARTDIV value */
 #define USART_DIV 0x8B

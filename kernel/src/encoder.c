@@ -50,6 +50,8 @@ void encoder_init(enum encoder_mapping encoder, struct encoder_pin_attr *attr)
 
 void encoder_stop(enum encoder_mapping encoder)
 {
+    (void) encoder;
+    return;
 }
 
 /**

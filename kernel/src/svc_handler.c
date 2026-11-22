@@ -18,6 +18,7 @@
 #include <syscall_thread.h>
 #include <syscall_mutex.h>
 #include <lcd_driver.h>
+#include <motor_driver.h>
 
 /** @brief Documents UNUSED. */
 #define UNUSED __attribute__((unused))
@@ -99,7 +100,7 @@ void svc_c_handler(uint32_t *psp) {
       return_val = 0;
       break;
     case SVC_REG_ENC_CALLBACK:
-      return_val = sys_register_encoder_callback((uint32_t) psp[0], (void) pst[1]);
+      return_val = sys_register_encoder_callback((uint32_t) psp[0], (void *) psp[1]);
       break;
     case SVC_SET_MOTOR:
       return_val = sys_motor_set((enum motor_mapping) psp[0], (uint32_t) psp[1], (direction_t) psp[2]);

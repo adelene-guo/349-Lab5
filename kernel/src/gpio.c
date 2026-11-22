@@ -38,7 +38,7 @@ gpio_reg* const gpio_regs[] = {(void*)0x40020000, (void*)0x40020400, (void*)0x40
  * mode - GPIO Port Mode
  * cnf  - GPIO Port Configuration
  */
-void gpio_init(gpio_port port, unsigned int num, unsigned int mode, unsigned int otype, unsigned int speed, unsigned int pupd, unsigned int alt){
+void gpio_init(gpio_port port, uint32_t num, uint32_t mode, uint32_t otype, uint32_t speed, uint32_t pupd, uint32_t alt){
     struct rcc_reg_map *rcc = (struct rcc_reg_map *)RCC_BASE;     /* Base address of RCC */
     rcc->ahb1_enr |= gpio_en[port];  /* Enable clock for GPIO[port] (A - G) */
 
@@ -59,20 +59,20 @@ void gpio_init(gpio_port port, unsigned int num, unsigned int mode, unsigned int
 /*
  * gpio_set: Set specified GPIO pin to high.
  */
-void gpio_set(gpio_port port, unsigned int num){
+void gpio_set(gpio_port port, uint32_t num){
     gpio_regs[port]->bsrr = 1 << num;           /* Writing to bits 0-15 of BSRR sets the GPIO pin */
 }
 
 /*
  * gpio_set: Clear specified GPIO pin to low.
  */
-void gpio_clr(gpio_port port, unsigned int num){
+void gpio_clr(gpio_port port, uint32_t num){
     gpio_regs[port]->bsrr = 1 << (num + 16);    /* Writing to bits 16-31 of BSRR clears the GPIO pin */
 }
 
 /*
  * gpio_read: Read from selected GPIO pin.
  */
-int gpio_read(gpio_port port, unsigned int num) {
+uint32_t gpio_read(gpio_port port, uint32_t num) {
     return !!(gpio_regs[port]->idr & (1 << num));
 }

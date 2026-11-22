@@ -2,6 +2,7 @@
 #include <pwm.h>
 #include <rcc.h>
 #include <unistd.h>
+#include <nvic.h>
 
 /** @brief enable bit for update generation */
 #define TIM_EGR_UG (1 << 0)
@@ -79,7 +80,7 @@ struct tim2_5 {
 uint8_t IS_COMP = 0;
 
 /** @brief Documents timer irqn[]. */
-int timer_irqn[] = {0, 0, 28, 29, 30, 50};
+static const int pwm_timer_irqn[] = {0, 0, 28, 29, 30, 50};
 
 #define TIM1_BASE (struct tim1 *) 0x40010000
 
@@ -136,7 +137,7 @@ void timer_start_pwm(uint32_t period, uint32_t duty_cycle, uint32_t timer, uint3
     tim->egr |= TIM_EGR_UG; // load the programmed auto-reload and compare values
     tim->sr &= ~TIM_SR_UIF; // clear update interrupt flag set by update event
     tim->dier |= TIM_DIER_UIE; // enable update interrupt
-    nvic_irq(timer_irqn[timer], IRQ_ENABLE); // enable the interrupt
+    nvic_irq(pwm_timer_irqn[timer], IRQ_ENABLE); // enable the interrupt
     tim->cr1 |= TIM_CR1_CEN; // enable counter
 }
 
@@ -159,15 +160,18 @@ void timer_set_duty_cycle(uint32_t timer, uint32_t channel, uint32_t duty_cycle)
 void pwm_testleds() {
     const uint32_t period = 1000;
     timer_start_pwm(period, 0, 2, 1);
+    timer_start_pwm(period, 0, 3, 1);
 
     while (1) {
         for (uint32_t duty = 0; duty <= period; duty += 10) {
             timer_set_duty_cycle(2, 1, duty);
+            timer_set_duty_cycle(3, 1, duty);
             for (volatile uint32_t delay = 0; delay < 20000; ++delay) {
             }
         }
         for (uint32_t duty = period; duty > 0; duty -= 10) {
             timer_set_duty_cycle(2, 1, duty);
+            timer_set_duty_cycle(3, 1, duty);
             for (volatile uint32_t delay = 0; delay < 20000; ++delay) {
             }
         }

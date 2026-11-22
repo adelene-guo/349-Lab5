@@ -32,14 +32,22 @@ struct syscfg
 
 void enable_exti(gpio_port port, uint32_t channel, uint32_t edge)
 {
+    (void) port;
+    (void) channel;
+    (void) edge;
+    return;
 }
 
 void disable_exti(uint32_t channel)
 {
+    (void) channel;
+    return;
 }
 
 void exti_clear_pending_bit(uint32_t channel)
 {
+    (void) channel;
+    return;
 }
 
 // Note: Add your IRQ handlers here
