@@ -3,6 +3,38 @@
 #include <rcc.h>
 #include <unistd.h>
 
+/** @brief enable bit for update generation */
+#define TIM_EGR_UG (1 << 0)
+
+/** @brief status register update interrupt flag */
+#define TIM_SR_UIF (1 << 0)
+
+/** @brief enable bit for update interrupt */
+#define TIM_DIER_UIE (1 << 0)
+
+/** @brief enable bit for counter */
+#define TIM_CR1_CEN (1 << 0)
+
+/** @brief Motor GPIO pins*/
+#define MOTOR1_PORT GPIO_A //D7
+#define MOTOR1_PIN 8
+#define MOTOR2_PORT GPIO_A //D8
+#define MOTOR2_PIN 9
+#define MOTOR3_PORT GPIO_A //D2
+#define MOTOR3_PIN 10
+#define MOTOR4_PORT GPIO_A //D11
+#define MOTOR4_PIN 7
+
+/** @brief Servo GPIO pin*/
+#define SERVO_PORT GPIO_C //D9
+#define SERVO_PIN 7
+
+/** @brief LED pins*/
+#define LEDR_PORT GPIO_A //D12
+#define LEDR_PIN 6
+#define LEDG_PORT GPIO_A //D13
+#define LEDG_PIN 5
+
 /** @brief TIM1 register map */
 struct tim1 {
     volatile uint32_t cr1;     /**< 00 Control Register 1 */
@@ -46,33 +78,98 @@ struct tim2_5 {
 
 uint8_t IS_COMP = 0;
 
-#define TIM1_BASE (struct tim1 *) -1 // TODO: fill out address for TIMER 1
+/** @brief Documents timer irqn[]. */
+int timer_irqn[] = {0, 0, 28, 29, 30, 50};
 
-struct tim2_5* const timer_base_pwm[] = {(void *)0x0,   // N/A - Don't fill out
-                                     (void *)0x0,   // N/A - Don't fill out
-                                     (void *)-1,    // TODO: fill out address for TIMER 2
-                                     (void *)-1,    // TODO: fill out address for TIMER 3
-                                     (void *)-1,    // TODO: fill out address for TIMER 4
-                                     (void *)-1};   // TODO: fill out address for TIMER 5
+#define TIM1_BASE (struct tim1 *) 0x40010000
+
+struct tim2_5* const timer_base_pwm[] = {(void *)0x0,
+                                     (void *)0x0,
+                                     (void *)0x40000000,
+                                     (void *)0x40000400,
+                                     (void *)0x40000800,
+                                     (void *)0x40000C00};
 
 void timer_start_pwm(uint32_t period, uint32_t duty_cycle, uint32_t timer, uint32_t channel) {
-    (void)period;
-    (void)duty_cycle;
-    (void)timer;
-    (void)channel;
-    return;
+    if (timer < 2 || timer > 5 || channel < 1 || channel > 4) return;
+
+    // Configure the pins that uses this timer's PWM signal
+    // TIM2: AF1 and TIM3: AF2
+    if (timer == 2 && channel == 1) {
+        gpio_init(LEDG_PORT, LEDG_PIN, MODE_ALT, OUTPUT_PUSH_PULL,
+                  OUTPUT_SPEED_VERY_HIGH, PUPD_NONE, ALT1);
+    } else if (timer == 3) {
+        if (channel == 1) {
+            gpio_init(LEDR_PORT, LEDR_PIN, MODE_ALT, OUTPUT_PUSH_PULL,
+                      OUTPUT_SPEED_VERY_HIGH, PUPD_NONE, ALT2);
+            gpio_init(MOTOR1_PORT, MOTOR1_PIN, MODE_ALT, OUTPUT_PUSH_PULL,
+                      OUTPUT_SPEED_VERY_HIGH, PUPD_NONE, ALT2);
+        } else if (channel == 2) {
+            gpio_init(MOTOR4_PORT, MOTOR4_PIN, MODE_ALT, OUTPUT_PUSH_PULL,
+                      OUTPUT_SPEED_VERY_HIGH, PUPD_NONE, ALT2);
+            gpio_init(MOTOR2_PORT, MOTOR2_PIN, MODE_ALT, OUTPUT_PUSH_PULL,
+                      OUTPUT_SPEED_VERY_HIGH, PUPD_NONE, ALT2);
+            gpio_init(SERVO_PORT, SERVO_PIN, MODE_ALT, OUTPUT_PUSH_PULL,
+                      OUTPUT_SPEED_VERY_HIGH, PUPD_NONE, ALT2);
+        } else if (channel == 3) {
+            gpio_init(MOTOR3_PORT, MOTOR3_PIN, MODE_ALT, OUTPUT_PUSH_PULL,
+                      OUTPUT_SPEED_VERY_HIGH, PUPD_NONE, ALT2);
+        }
+    }
+
+    struct rcc_reg_map *rcc = RCC_BASE;
+    rcc->apb1_enr |= 1 << (timer-2); // enable RCC for appropriate timer
+
+    struct tim2_5 *tim = timer_base_pwm[timer];
+    uint32_t channel_index = channel - 1;
+    uint32_t ccmr_index = channel_index / 2;
+    uint32_t ccmr_shift = (channel_index % 2) * 8;
+    uint32_t ccmr_mask = 0xff << ccmr_shift;
+
+    // Configure the selected channel for PWM mode 1 with preload enabled.
+    tim->ccmr[ccmr_index] = (tim->ccmr[ccmr_index] & ~ccmr_mask) |
+                            (0x68 << ccmr_shift);
+    tim->ccer |= 1 << (channel_index * 4);
+    tim->ccr[channel_index] = duty_cycle;
+
+    tim->arr = period;
+    tim->egr |= TIM_EGR_UG; // load the programmed auto-reload and compare values
+    tim->sr &= ~TIM_SR_UIF; // clear update interrupt flag set by update event
+    tim->dier |= TIM_DIER_UIE; // enable update interrupt
+    nvic_irq(timer_irqn[timer], IRQ_ENABLE); // enable the interrupt
+    tim->cr1 |= TIM_CR1_CEN; // enable counter
 }
 
 void timer_disable_pwm(uint32_t timer, uint32_t channel) {
-    (void)timer;
-    (void)channel;
-    return;
+    if (timer < 2 || timer > 5 || channel < 1 || channel > 4) return;
+
+    struct tim2_5 *tim = timer_base_pwm[timer];
+    uint32_t channel_index = channel - 1;
+    tim->ccer &= ~(1u << (channel_index * 4)); // disable this channel's output
 }
 
 void timer_set_duty_cycle(uint32_t timer, uint32_t channel, uint32_t duty_cycle) {
-    (void)timer;
-    (void)channel;
-    (void)(duty_cycle);
-    return;
+    if (timer < 2 || timer > 5 || channel < 1 || channel > 4) return;
+
+    struct tim2_5 *tim = timer_base_pwm[timer];
+    uint32_t channel_index = channel - 1;
+    tim->ccr[channel_index] = duty_cycle; //update duty cycle
 }
 
+void pwm_testleds() {
+    const uint32_t period = 1000;
+    timer_start_pwm(period, 0, 2, 1);
+
+    while (1) {
+        for (uint32_t duty = 0; duty <= period; duty += 10) {
+            timer_set_duty_cycle(2, 1, duty);
+            for (volatile uint32_t delay = 0; delay < 20000; ++delay) {
+            }
+        }
+        for (uint32_t duty = period; duty > 0; duty -= 10) {
+            timer_set_duty_cycle(2, 1, duty);
+            for (volatile uint32_t delay = 0; delay < 20000; ++delay) {
+            }
+        }
+    }
+}

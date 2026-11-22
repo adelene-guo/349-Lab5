@@ -41,6 +41,7 @@ int kernel_main( void ) {
   //systick_delay(1000);
 
   //servo_init();
+  pwm_testleds();
   enter_user_mode();
 
   return 0;
