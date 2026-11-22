@@ -17,6 +17,7 @@
 #include <svc_num.h>
 #include <syscall_thread.h>
 #include <syscall_mutex.h>
+#include <lcd_driver.h>
 
 /** @brief Documents UNUSED. */
 #define UNUSED __attribute__((unused))
@@ -84,6 +85,24 @@ void svc_c_handler(uint32_t *psp) {
     case SVC_MUT_ULK:
       sys_mutex_unlock((void *)psp[0]);
       return_val = 0;
+      break;
+    case SVC_LCD_PRINT:
+      lcd_print((char *)psp[0]);
+      return_val = 0;
+      break;
+    case SVC_LCD_SET_CURSOR:
+      lcd_set_cursor((uint8_t) psp[0], (uint8_t) psp[1]);
+      return_val = 0;
+      break;
+    case SVC_LCD_CLEAR:
+      lcd_clear();
+      return_val = 0;
+      break;
+    case SVC_REG_ENC_CALLBACK:
+      return_val = sys_register_encoder_callback((uint32_t) psp[0], (void) pst[1]);
+      break;
+    case SVC_SET_MOTOR:
+      return_val = sys_motor_set((enum motor_mapping) psp[0], (uint32_t) psp[1], (direction_t) psp[2]);
       break;
     default:
       return_val = -1;

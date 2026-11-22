@@ -54,7 +54,16 @@
 /** @brief SVC number for servo_set() */
 #define SVC_SERVO_SET 23
 
-#define SVC_REG_ENC_CALLBACK 24
-#define SVC_SET_MOTOR 25
+/** @brief SVC number for lcd_print */
+#define SVC_LCD_PRINT 24
+/** @brief SVC number for lcd_set_cursor */
+#define SVC_LCD_SET_CURSOR 25
+/** @brief SVC number for lcd_clear */
+#define SVC_LCD_CLEAR 26
+
+/** @brief sys_register_encoder_callback */
+#define SVC_REG_ENC_CALLBACK 27
+/** @brief SVC number for sys_motor_set */
+#define SVC_SET_MOTOR 28
 
 #endif /* _SVC_NUM_H_ */
