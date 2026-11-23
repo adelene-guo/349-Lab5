@@ -34,8 +34,8 @@ ivt:
 .word   spin                /* 19 IRQ3 RTC   */
 .word   spin                /* 20 IRQ4 FLASH   */
 .word   spin                /* 21 IRQ5 RCC */
-.word   EXTI0_IRQHandler    /* 22 IRQ6 EXTI0 */
-.word   spin                /* 23 IRQ7 EXTI1  */
+.word   spin    /* 22 IRQ6 EXTI0 */
+.word   EXTI1_IRQHandler   /* 23 IRQ7 EXTI1  */
 .word   spin                /* 24 IRQ8 EXTI2   */
 .word   spin                /* 25 IRQ9 EXTI3 */
 .word   EXTI4_IRQHandler    /* 26 IRQ10 EXTI4 */

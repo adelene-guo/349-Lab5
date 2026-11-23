@@ -25,6 +25,7 @@
 #include "arm.h"
 #include "servok.h"
 #include "pwm.h"
+#include "exti.h"
 
 /** @brief USARTDIV value */
 #define USART_DIV 0x8B
@@ -40,8 +41,9 @@ int kernel_main( void ) {
   //systick_delay(1000);
 
   //servo_init();
-  pwm_testleds();
+  //pwm_testleds();
+  exti_testbutton();
+  while (1);
   enter_user_mode();
-
   return 0;
 }

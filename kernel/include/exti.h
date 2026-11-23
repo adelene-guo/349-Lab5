@@ -32,4 +32,7 @@ void disable_exti(uint32_t channel);
  */
 void exti_clear_pending_bit(uint32_t channel);
 
+/* EXTI LED button test */
+void exti_testbutton(void);
+
 #endif /* _EXTI_H_ */

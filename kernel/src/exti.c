@@ -16,9 +16,11 @@
 #define ENCB2_PORT GPIO_B //D6
 #define ENCB2_PIN 10
 
-/** @brief Button pin*/
-#define BUTTON_PORT GPIO_A //A0
-#define BUTTON_PIN 0
+/** @brief Button and led pin for testing*/
+#define BUTTON_PORT GPIO_A //A1 (PA1)
+#define BUTTON_PIN 1
+#define LEDR_PORT GPIO_A //D12
+#define LEDR_PIN 6
 
 /** @brief EXTI register map. */
 struct exti
@@ -40,8 +42,8 @@ struct syscfg
     volatile uint32_t cmpcr;   /**< 20 Compensation cell control */
 };
 
-#define EXTI_BASE (struct exti *)0x40013C00
-#define SYSCFG_BASE (struct syscfg *)0x40013800
+#define EXTI_BASE ((volatile struct exti *)0x40013C00)
+#define SYSCFG_BASE ((volatile struct syscfg *)0x40013800)
 
 #define BITS_PER_EXTI 4
 
@@ -73,18 +75,25 @@ void enable_exti(gpio_port port, uint32_t channel, uint32_t edge)
 
 void disable_exti(uint32_t channel)
 {
-    EXTI_BASE->imr = 0;
+    EXTI_BASE->imr &= ~(1 << channel);
 }
 
 void exti_clear_pending_bit(uint32_t channel){
-    EXTI_BASE->pr |= 1 << channel; //clear bit by programming it to one
+    EXTI_BASE->pr = 1 << channel; //clear bit by programming it to one
 }
 
 /* EXTI line numbers match the GPIO pin numbers. */
-void EXTI0_IRQHandler(void)
+void EXTI1_IRQHandler(void)
 {
-    if (EXTI_BASE->pr & (1 << BUTTON_PIN))
+    static uint32_t led_on;
+    if (EXTI_BASE->pr & (1 << BUTTON_PIN)) {
         exti_clear_pending_bit(BUTTON_PIN);
+        led_on = !led_on;
+        if (led_on)
+            gpio_set(LEDR_PORT, LEDR_PIN);
+        else
+            gpio_clr(LEDR_PORT, LEDR_PIN);
+    }
 }
 
 void EXTI4_IRQHandler(void)
@@ -115,4 +124,13 @@ void EXTI15_10_IRQHandler(void)
         exti_clear_pending_bit(ENCB2_PIN);
         encoder_irq_handler_right();
     }
+}
+
+void exti_testbutton(){
+    gpio_init(BUTTON_PORT, BUTTON_PIN, MODE_INPUT, OUTPUT_PUSH_PULL,
+              OUTPUT_SPEED_LOW, PUPD_PULL_UP, ALT0);
+    gpio_init(LEDR_PORT, LEDR_PIN, MODE_GP_OUTPUT, OUTPUT_PUSH_PULL,
+              OUTPUT_SPEED_LOW, PUPD_NONE, ALT0);
+    gpio_clr(LEDR_PORT, LEDR_PIN);
+    enable_exti(BUTTON_PORT, BUTTON_PIN, FALLING_EDGE);
 }

@@ -35,7 +35,7 @@ void timer_disable_pwm(uint32_t timer, uint32_t channel);
  */
 void timer_set_duty_cycle(uint32_t timer, uint32_t channel, uint32_t duty_cycle);
 
-/* PWM LED demonstration. */
+/* PWM LED test */
 void pwm_testleds(void);
 
 #endif /* _PWM_H_ */
