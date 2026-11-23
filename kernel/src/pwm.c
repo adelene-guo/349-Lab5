@@ -16,6 +16,9 @@
 /** @brief enable bit for counter */
 #define TIM_CR1_CEN (1 << 0)
 
+/** @brief OCxM=110 selects PWM mode 1; OCxPE=1 enables compare preload. */
+#define TIM_CCMR_PWM_MODE1_PRELOAD 0x68
+
 /** @brief Motor GPIO pins*/
 #define MOTOR1_PORT GPIO_A //D7
 #define MOTOR1_PIN 8
@@ -129,7 +132,7 @@ void timer_start_pwm(uint32_t period, uint32_t duty_cycle, uint32_t timer, uint3
 
     // Configure the selected channel for PWM mode 1 with preload enabled.
     tim->ccmr[ccmr_index] = (tim->ccmr[ccmr_index] & ~ccmr_mask) |
-                            (0x68 << ccmr_shift);
+                            (TIM_CCMR_PWM_MODE1_PRELOAD << ccmr_shift);
     tim->ccer |= 1 << (channel_index * 4);
     tim->ccr[channel_index] = duty_cycle;
 

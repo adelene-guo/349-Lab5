@@ -34,11 +34,11 @@ ivt:
 .word   spin                /* 19 IRQ3 RTC   */
 .word   spin                /* 20 IRQ4 FLASH   */
 .word   spin                /* 21 IRQ5 RCC */
-.word   spin                /* 22 IRQ6 EXTI0 */
+.word   EXTI0_IRQHandler    /* 22 IRQ6 EXTI0 */
 .word   spin                /* 23 IRQ7 EXTI1  */
 .word   spin                /* 24 IRQ8 EXTI2   */
 .word   spin                /* 25 IRQ9 EXTI3 */
-.word   spin                /* 26 IRQ10 EXTI4 */
+.word   EXTI4_IRQHandler    /* 26 IRQ10 EXTI4 */
 .word   spin                /* 27 IRQ11 DMA1_Channel1   */
 .word   spin                /* 28 IRQ12 DMA1_Channel2   */
 .word   spin                /* 29 IRQ13 DMA1_Channel3 */
@@ -51,7 +51,7 @@ ivt:
 .word   spin                /* 36 IRQ20 CAN1_TX0   */
 .word   spin                /* 37 IRQ21 CAN1_RX1 */
 .word   spin                /* 38 IRQ22 CAN1_SCE */
-.word   spin                /* 39 IRQ23 EXTI9_5   */
+.word   EXTI9_5_IRQHandler /* 39 IRQ23 EXTI9_5   */
 .word   spin                /* 40 IRQ24 TIM1_BRK   */
 .word   spin                /* 41 IRQ25 TIM1_UP */
 .word   spin                /* 42 IRQ26 TIM1_TRG_COM */
@@ -68,7 +68,7 @@ ivt:
 .word   spin                /* 53 IRQ37 USART1 */
 .word   _uart_handler_      /* 54 IRQ38 USART2 */
 .word   spin                /* 55 IRQ39 USART3   */
-.word   spin                /* 56 IRQ40 EXTI15_10   */
+.word   EXTI15_10_IRQHandler /* 56 IRQ40 EXTI15_10   */
 .word   spin                /* 57 IRQ41 RTCAlarm */
 .word   spin                /* 58 IRQ42 OTG_FS_WKUP */
 .word   spin                /* 59 IRQ43 RESERVED   */

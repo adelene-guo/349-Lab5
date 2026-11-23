@@ -1,7 +1,24 @@
 #include <exti.h>
+#include <encoder.h>
 #include <gpio.h>
 #include <printk.h>
 #include <rcc.h>
+#include <nvic.h>
+
+/** @brief ENCA and ENCB pins*/
+#define ENCA1_PORT GPIO_A //A2
+#define ENCA1_PIN 4
+#define ENCB1_PORT GPIO_B //D10
+#define ENCB1_PIN 6
+
+#define ENCA2_PORT GPIO_B //D4
+#define ENCA2_PIN 5
+#define ENCB2_PORT GPIO_B //D6
+#define ENCB2_PIN 10
+
+/** @brief Button pin*/
+#define BUTTON_PORT GPIO_A //A0
+#define BUTTON_PIN 0
 
 /** @brief EXTI register map. */
 struct exti
@@ -30,24 +47,72 @@ struct syscfg
 
 #define RCC_APB2_SYSCFG_EN (1 << 14)
 
+/** @brief Documents exti irqn[]. */
+static const int exti_irqn[] = {6, 7, 8, 9, 10, 23, 23, 23, 23, 23, 40, 40, 40, 40, 40, 40};
+
+
 void enable_exti(gpio_port port, uint32_t channel, uint32_t edge)
 {
-    (void) port;
-    (void) channel;
-    (void) edge;
-    return;
+    uint32_t exti_bit = 1 << channel;
+    uint32_t config_shift = (channel%4) * BITS_PER_EXTI;  //find the start of the 4-bit field
+    uint32_t config_mask = 0xF << config_shift; //mask the 4 bits
+
+    RCC_BASE->apb2_enr |= RCC_APB2_SYSCFG_EN; //system clock config
+    SYSCFG_BASE->exti[channel/4] = //channels 0-3 use 0, 4-7 use 1, and so on
+        (SYSCFG_BASE->exti[channel/4] & ~config_mask) |
+        ((uint32_t)port << config_shift); //write port value
+
+    EXTI_BASE->rtsr = (EXTI_BASE->rtsr & ~exti_bit) | //trigger on rising edge
+                      ((edge & RISING_EDGE) ? exti_bit : 0);
+    EXTI_BASE->ftsr = (EXTI_BASE->ftsr & ~exti_bit) | //trigger falling edge
+                      ((edge & FALLING_EDGE) ? exti_bit : 0);
+    EXTI_BASE->imr |= exti_bit; //generate interrupts
+
+    nvic_irq(exti_irqn[channel], IRQ_ENABLE);
 }
 
 void disable_exti(uint32_t channel)
 {
-    (void) channel;
-    return;
+    EXTI_BASE->imr = 0;
 }
 
-void exti_clear_pending_bit(uint32_t channel)
+void exti_clear_pending_bit(uint32_t channel){
+    EXTI_BASE->pr |= 1 << channel; //clear bit by programming it to one
+}
+
+/* EXTI line numbers match the GPIO pin numbers. */
+void EXTI0_IRQHandler(void)
 {
-    (void) channel;
-    return;
+    if (EXTI_BASE->pr & (1 << BUTTON_PIN))
+        exti_clear_pending_bit(BUTTON_PIN);
 }
 
-// Note: Add your IRQ handlers here
+void EXTI4_IRQHandler(void)
+{
+    if (EXTI_BASE->pr & (1 << ENCA1_PIN)) {
+        exti_clear_pending_bit(ENCA1_PIN);
+        encoder_irq_handler_left();
+    }
+}
+
+void EXTI9_5_IRQHandler(void)
+{
+    uint32_t pending = EXTI_BASE->pr;
+
+    if (pending & (1 << ENCA2_PIN)) { //distinguish with pending bits
+        exti_clear_pending_bit(ENCA2_PIN);
+        encoder_irq_handler_right();
+    }
+    if (pending & (1 << ENCB1_PIN)) {
+        exti_clear_pending_bit(ENCB1_PIN);
+        encoder_irq_handler_left();
+    }
+}
+
+void EXTI15_10_IRQHandler(void)
+{
+    if (EXTI_BASE->pr & (1 << ENCB2_PIN)) {
+        exti_clear_pending_bit(ENCB2_PIN);
+        encoder_irq_handler_right();
+    }
+}
