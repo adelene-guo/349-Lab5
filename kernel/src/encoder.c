@@ -50,8 +50,9 @@ void encoder_init(enum encoder_mapping encoder, struct encoder_pin_attr *attr)
 
 void encoder_stop(enum encoder_mapping encoder)
 {
-    (void) encoder;
-    return;
+    struct encoder_pin_attr encoder_selected = encoder_attributes[encoder].pins;
+    disable_exti(encoder_selected.encoder_pin_a.num);
+    disable_exti(encoder_selected.encoder_pin_b.num);
 }
 
 /**
@@ -80,8 +81,20 @@ int sys_register_encoder_callback(uint32_t encoder,
 // your PCB design decisions may make your life either easier or harder!
 void encoder_irq_handler_left()
 {
+    struct encoder_pin_attr encoder_left = encoder_attributes[ENCODER_LEFT].pins;
+    uint32_t temp_a;
+    uint32_t temp_b;
+    temp_a = gpio_read(encoder_left.encoder_pin_a.port, encoder_left.encoder_pin_a.num);
+    temp_b = gpio_read(encoder_left.encoder_pin_b.port, encoder_left.encoder_pin_b.num);
+    encoder_attributes[ENCODER_LEFT].encoder_isr_callback(temp_a, temp_b);
 }
 
 void encoder_irq_handler_right()
 {
+    struct encoder_pin_attr encoder_right = encoder_attributes[ENCODER_RIGHT].pins;
+    uint32_t temp_a;
+    uint32_t temp_b;
+    temp_a = gpio_read(encoder_right.encoder_pin_a.port, encoder_right.encoder_pin_a.num);
+    temp_b = gpio_read(encoder_right.encoder_pin_b.port, encoder_right.encoder_pin_b.num);
+    encoder_attributes[ENCODER_RIGHT].encoder_isr_callback(temp_a, temp_b);
 }

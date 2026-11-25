@@ -60,6 +60,6 @@ void motor_init(enum motor_mapping motor, struct motor_attr *attr,
  * @param direction  - must be one of FREE, FORWARD, BACKWARD, STOP
  */
 int sys_motor_set(enum motor_mapping motor, uint32_t duty_cycle,
-                  direction_t direction);
+                  direction_t direction, struct motor_attr attr);
 
 #endif /* _MOTOR_DRIVER_H_ */

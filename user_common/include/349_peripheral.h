@@ -7,7 +7,7 @@
  */
 #ifndef _349_PERIPHERAL_H
 #define _349_PERIPHERAL_H
-
+#include "motor_driver.h"
 typedef enum encoder { LEFT_ENCODER, RIGHT_ENCODER } encoder_t;
 
 typedef enum motor { LEFT_MOTOR, RIGHT_MOTOR } motor_t;
@@ -42,6 +42,6 @@ typedef enum motor_direction {
  *                   3 - Stop
  *
  */
-void motor_set(motor_t motor, uint32_t duty_cycle, direction_t direction);
+void motor_set(motor_t motor, uint32_t duty_cycle, direction_t direction, struct motor_attr attr);
 
 #endif /* _349_PERIPHERAL_H */

@@ -34,16 +34,26 @@ void motor_init(enum motor_mapping motor, struct motor_attr *attr,
 }
 
 int sys_motor_set(enum motor_mapping motor, uint32_t duty_cycle,
-                  direction_t direction)
-{
-    // NOTE: This function should return -1 if an invalid motor is given and 0
-    // otherwise
-    // TODO: Implement this function.
-    // Hint: Take a look at the datasheet for the L298N motor driver
+                  direction_t direction, struct motor_attr attr)
+{   
+    if (motor > 1) return -1;
 
-    (void)motor;
-    (void)duty_cycle;
-    (void)direction;
+    timer_set_duty_cycle(attr.timer.timer, attr.timer.channel, duty_cycle);
+    
+    if (direction == FREE) {
+        gpio_clear(attr->motor_in1.port, attr->motor_in1.num);
+        gpio_clear(attr->motor_in2.port, attr->motor_in2.num);
+    } else if (direction == FORWARD) {
+        gpio_set(attr->motor_in1.port, attr->motor_in1.num);
+        gpio_clear(attr->motor_in2.port, attr->motor_in2.num);
+    } else if (direction == BACKWARD) {
+        gpio_clear(attr->motor_in1.port, attr->motor_in1.num);
+        gpio_set(attr->motor_in2.port, attr->motor_in2.num);
+    } else if (direction == STOP){
+        gpio_set(attr->motor_in1.port, attr->motor_in1.num);
+        gpio_set(attr->motor_in2.port, attr->motor_in2.num);
+    }
 
     return 0;
 }
+
