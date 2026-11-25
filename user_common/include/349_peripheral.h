@@ -7,7 +7,7 @@
  */
 #ifndef _349_PERIPHERAL_H
 #define _349_PERIPHERAL_H
-#include "motor_driver.h"
+#include <stdint.h>
 typedef enum encoder { LEFT_ENCODER, RIGHT_ENCODER } encoder_t;
 
 typedef enum motor { LEFT_MOTOR, RIGHT_MOTOR } motor_t;
@@ -18,8 +18,8 @@ typedef enum motor { LEFT_MOTOR, RIGHT_MOTOR } motor_t;
  * @param encoder The encoder to register the callback for
  * @param callback Point to the callback function
  */
-void register_encoder_callback(encoder_t encoder,
-                               void (*callback)(uint32_t, uint32_t));
+int register_encoder_callback(encoder_t encoder,
+                              void (*callback)(uint32_t, uint32_t));
 
 /* Defines for motor direction input to motor_set */
 typedef enum motor_direction {
@@ -42,6 +42,6 @@ typedef enum motor_direction {
  *                   3 - Stop
  *
  */
-void motor_set(motor_t motor, uint32_t duty_cycle, direction_t direction, struct motor_attr attr);
+void motor_set(motor_t motor, uint32_t duty_cycle, direction_t direction);
 
 #endif /* _349_PERIPHERAL_H */

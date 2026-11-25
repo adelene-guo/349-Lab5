@@ -34,9 +34,11 @@ void motor_init(enum motor_mapping motor, struct motor_attr *attr,
 }
 
 int sys_motor_set(enum motor_mapping motor, uint32_t duty_cycle,
-                  direction_t direction, struct motor_attr attr)
+                  direction_t direction)
 {   
-    if (motor > 1) return -1;
+    if ((uint32_t)motor >= NUM_MOTORS || duty_cycle > MAX_DUTY_CYCLE) return -1;
+
+    struct motor_attr attr = motors[motor];
 
     timer_set_duty_cycle(attr.timer.timer, attr.timer.channel, duty_cycle);
     

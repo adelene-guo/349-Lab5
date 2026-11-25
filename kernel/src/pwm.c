@@ -3,6 +3,7 @@
 #include <rcc.h>
 #include <unistd.h>
 #include <nvic.h>
+#include <board_pins.h>
 
 /** @brief enable bit for update generation */
 #define TIM_EGR_UG (1 << 0)
@@ -18,26 +19,6 @@
 
 /** @brief OCxM=110 selects PWM mode 1; OCxPE=1 enables compare preload. */
 #define TIM_CCMR_PWM_MODE1_PRELOAD 0x68
-
-/** @brief Motor GPIO pins*/
-#define MOTOR1_PORT GPIO_A //D7
-#define MOTOR1_PIN 8
-#define MOTOR2_PORT GPIO_A //D8
-#define MOTOR2_PIN 9
-#define MOTOR3_PORT GPIO_A //D2
-#define MOTOR3_PIN 10
-#define MOTOR4_PORT GPIO_A //D11
-#define MOTOR4_PIN 7
-
-/** @brief Servo GPIO pin*/
-#define SERVO_PORT GPIO_C //D9
-#define SERVO_PIN 7
-
-/** @brief LED pins*/
-#define LEDR_PORT GPIO_A //D12
-#define LEDR_PIN 6
-#define LEDG_PORT GPIO_A //D13
-#define LEDG_PIN 5
 
 /** @brief TIM1 register map */
 struct tim1 {
@@ -100,23 +81,23 @@ void timer_start_pwm(uint32_t period, uint32_t duty_cycle, uint32_t timer, uint3
     // Configure the pins that uses this timer's PWM signal
     // TIM2: AF1 and TIM3: AF2
     if (timer == 2 && channel == 1) {
-        gpio_init(LEDG_PORT, LEDG_PIN, MODE_ALT, OUTPUT_PUSH_PULL,
+        gpio_init(LED_GREEN_PORT, LED_GREEN_PIN, MODE_ALT, OUTPUT_PUSH_PULL,
                   OUTPUT_SPEED_VERY_HIGH, PUPD_NONE, ALT1);
     } else if (timer == 3) {
         if (channel == 1) {
-            gpio_init(LEDR_PORT, LEDR_PIN, MODE_ALT, OUTPUT_PUSH_PULL,
+            gpio_init(LED_RED_PORT, LED_RED_PIN, MODE_ALT, OUTPUT_PUSH_PULL,
                       OUTPUT_SPEED_VERY_HIGH, PUPD_NONE, ALT2);
-            gpio_init(MOTOR1_PORT, MOTOR1_PIN, MODE_ALT, OUTPUT_PUSH_PULL,
+            gpio_init(RIGHT_MOTOR_IN1_PORT, RIGHT_MOTOR_IN1_PIN, MODE_ALT, OUTPUT_PUSH_PULL,
                       OUTPUT_SPEED_VERY_HIGH, PUPD_NONE, ALT2);
         } else if (channel == 2) {
-            gpio_init(MOTOR4_PORT, MOTOR4_PIN, MODE_ALT, OUTPUT_PUSH_PULL,
+            gpio_init(LEFT_MOTOR_IN2_PORT, LEFT_MOTOR_IN2_PIN, MODE_ALT, OUTPUT_PUSH_PULL,
                       OUTPUT_SPEED_VERY_HIGH, PUPD_NONE, ALT2);
-            gpio_init(MOTOR2_PORT, MOTOR2_PIN, MODE_ALT, OUTPUT_PUSH_PULL,
+            gpio_init(RIGHT_MOTOR_IN2_PORT, RIGHT_MOTOR_IN2_PIN, MODE_ALT, OUTPUT_PUSH_PULL,
                       OUTPUT_SPEED_VERY_HIGH, PUPD_NONE, ALT2);
-            gpio_init(SERVO_PORT, SERVO_PIN, MODE_ALT, OUTPUT_PUSH_PULL,
+            gpio_init(SERVO_PWM_PORT, SERVO_PWM_PIN, MODE_ALT, OUTPUT_PUSH_PULL,
                       OUTPUT_SPEED_VERY_HIGH, PUPD_NONE, ALT2);
         } else if (channel == 3) {
-            gpio_init(MOTOR3_PORT, MOTOR3_PIN, MODE_ALT, OUTPUT_PUSH_PULL,
+            gpio_init(LEFT_MOTOR_IN1_PORT, LEFT_MOTOR_IN1_PIN, MODE_ALT, OUTPUT_PUSH_PULL,
                       OUTPUT_SPEED_VERY_HIGH, PUPD_NONE, ALT2);
         }
     }

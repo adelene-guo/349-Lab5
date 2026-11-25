@@ -4,23 +4,7 @@
 #include <printk.h>
 #include <rcc.h>
 #include <nvic.h>
-
-/** @brief ENCA and ENCB pins*/
-#define ENCA1_PORT GPIO_A //A2
-#define ENCA1_PIN 4
-#define ENCB1_PORT GPIO_B //D10
-#define ENCB1_PIN 6
-
-#define ENCA2_PORT GPIO_B //D4
-#define ENCA2_PIN 5
-#define ENCB2_PORT GPIO_B //D6
-#define ENCB2_PIN 10
-
-/** @brief Button and led pin for testing*/
-#define BUTTON_PORT GPIO_A //A1 (PA1)
-#define BUTTON_PIN 1
-#define LEDR_PORT GPIO_A //D12
-#define LEDR_PIN 6
+#include <board_pins.h>
 
 /** @brief EXTI register map. */
 struct exti
@@ -49,10 +33,6 @@ struct syscfg
 
 #define RCC_APB2_SYSCFG_EN (1 << 14)
 
-/** @brief Documents exti irqn[]. */
-static const int exti_irqn[] = {6, 7, 8, 9, 10, 23, 23, 23, 23, 23, 40, 40, 40, 40, 40, 40};
-
-
 void enable_exti(gpio_port port, uint32_t channel, uint32_t edge)
 {
     uint32_t exti_bit = 1 << channel;
@@ -70,7 +50,7 @@ void enable_exti(gpio_port port, uint32_t channel, uint32_t edge)
                       ((edge & FALLING_EDGE) ? exti_bit : 0);
     EXTI_BASE->imr |= exti_bit; //generate interrupts
 
-    nvic_irq(exti_irqn[channel], IRQ_ENABLE);
+    nvic_irq(EXTI_IRQN[channel], IRQ_ENABLE);
 }
 
 void disable_exti(uint32_t channel)
@@ -90,16 +70,16 @@ void EXTI1_IRQHandler(void)
         exti_clear_pending_bit(BUTTON_PIN);
         led_on = !led_on;
         if (led_on)
-            gpio_set(LEDR_PORT, LEDR_PIN);
+            gpio_set(LED_RED_PORT, LED_RED_PIN);
         else
-            gpio_clr(LEDR_PORT, LEDR_PIN);
+            gpio_clr(LED_RED_PORT, LED_RED_PIN);
     }
 }
 
 void EXTI4_IRQHandler(void)
 {
-    if (EXTI_BASE->pr & (1 << ENCA1_PIN)) {
-        exti_clear_pending_bit(ENCA1_PIN);
+    if (EXTI_BASE->pr & (1 << LEFT_ENCODER_A_PIN)) {
+        exti_clear_pending_bit(LEFT_ENCODER_A_PIN);
         encoder_irq_handler_left();
     }
 }
@@ -108,20 +88,20 @@ void EXTI9_5_IRQHandler(void)
 {
     uint32_t pending = EXTI_BASE->pr;
 
-    if (pending & (1 << ENCA2_PIN)) { //distinguish with pending bits
-        exti_clear_pending_bit(ENCA2_PIN);
+    if (pending & (1 << RIGHT_ENCODER_A_PIN)) { //distinguish with pending bits
+        exti_clear_pending_bit(RIGHT_ENCODER_A_PIN);
         encoder_irq_handler_right();
     }
-    if (pending & (1 << ENCB1_PIN)) {
-        exti_clear_pending_bit(ENCB1_PIN);
+    if (pending & (1 << LEFT_ENCODER_B_PIN)) {
+        exti_clear_pending_bit(LEFT_ENCODER_B_PIN);
         encoder_irq_handler_left();
     }
 }
 
 void EXTI15_10_IRQHandler(void)
 {
-    if (EXTI_BASE->pr & (1 << ENCB2_PIN)) {
-        exti_clear_pending_bit(ENCB2_PIN);
+    if (EXTI_BASE->pr & (1 << RIGHT_ENCODER_B_PIN)) {
+        exti_clear_pending_bit(RIGHT_ENCODER_B_PIN);
         encoder_irq_handler_right();
     }
 }
@@ -129,8 +109,8 @@ void EXTI15_10_IRQHandler(void)
 void exti_testbutton(){
     gpio_init(BUTTON_PORT, BUTTON_PIN, MODE_INPUT, OUTPUT_PUSH_PULL,
               OUTPUT_SPEED_LOW, PUPD_PULL_UP, ALT0);
-    gpio_init(LEDR_PORT, LEDR_PIN, MODE_GP_OUTPUT, OUTPUT_PUSH_PULL,
+    gpio_init(LED_RED_PORT, LED_RED_PIN, MODE_GP_OUTPUT, OUTPUT_PUSH_PULL,
               OUTPUT_SPEED_LOW, PUPD_NONE, ALT0);
-    gpio_clr(LEDR_PORT, LEDR_PIN);
+    gpio_clr(LED_RED_PORT, LED_RED_PIN);
     enable_exti(BUTTON_PORT, BUTTON_PIN, FALLING_EDGE);
 }

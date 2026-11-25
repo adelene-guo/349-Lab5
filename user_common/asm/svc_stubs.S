@@ -130,3 +130,13 @@ get_priority:
 thread_time:
   svc SVC_THR_TIME
   bx lr
+
+.global register_encoder_callback
+register_encoder_callback:
+  svc SVC_REG_ENC_CALLBACK
+  bx lr
+
+.global motor_set
+motor_set:
+  svc SVC_SET_MOTOR
+  bx lr

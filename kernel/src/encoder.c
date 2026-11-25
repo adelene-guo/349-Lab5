@@ -86,7 +86,8 @@ void encoder_irq_handler_left()
     uint32_t temp_b;
     temp_a = gpio_read(encoder_left.encoder_pin_a.port, encoder_left.encoder_pin_a.num);
     temp_b = gpio_read(encoder_left.encoder_pin_b.port, encoder_left.encoder_pin_b.num);
-    encoder_attributes[ENCODER_LEFT].encoder_isr_callback(temp_a, temp_b);
+    if (encoder_attributes[ENCODER_LEFT].encoder_isr_callback != NULL)
+        encoder_attributes[ENCODER_LEFT].encoder_isr_callback(temp_a, temp_b);
 }
 
 void encoder_irq_handler_right()
@@ -96,5 +97,6 @@ void encoder_irq_handler_right()
     uint32_t temp_b;
     temp_a = gpio_read(encoder_right.encoder_pin_a.port, encoder_right.encoder_pin_a.num);
     temp_b = gpio_read(encoder_right.encoder_pin_b.port, encoder_right.encoder_pin_b.num);
-    encoder_attributes[ENCODER_RIGHT].encoder_isr_callback(temp_a, temp_b);
+    if (encoder_attributes[ENCODER_RIGHT].encoder_isr_callback != NULL)
+        encoder_attributes[ENCODER_RIGHT].encoder_isr_callback(temp_a, temp_b);
 }
